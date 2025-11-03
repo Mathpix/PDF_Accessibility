@@ -10,6 +10,11 @@ class Pdf2HtmlStack extends Stack {
     super(scope, id, props);
 
     // Parameters
+    const imageTagParam = new CfnParameter(this, 'ImageTag', {
+      type: 'String',
+      default: 'latest',
+    });
+
     const bucketName = new CfnParameter(this, 'BucketName', {
       type: 'String',
       description: 'Name of the pre-created S3 bucket for PDF processing',
@@ -78,7 +83,8 @@ class Pdf2HtmlStack extends Stack {
     const lambdaFunction = new lambda.DockerImageFunction(this, 'Pdf2HtmlFunction', {
       functionName: 'Pdf2HtmlPipeline',
       code: lambda.DockerImageCode.fromEcr(repository, {
-        tagOrDigest: 'latest'
+        tagOrDigest: imageTagParam.valueAsString
+        // tagOrDigest: 'latest'
       }),
       role: lambdaRole,
       timeout: Duration.minutes(15),
@@ -87,7 +93,8 @@ class Pdf2HtmlStack extends Stack {
         BDA_PROJECT_ARN: bdaProjectArn.valueAsString,
         BDA_S3_BUCKET: bucketName.valueAsString,
         BDA_OUTPUT_PREFIX: 'bda-processing',  // Use the new prefix for BDA output
-        CLEANUP_INTERMEDIATE_FILES: 'true'    // Enable cleanup of intermediate files
+        CLEANUP_INTERMEDIATE_FILES: 'true',    // Enable cleanup of intermediate files
+        PIPELINE_MODE: 'mathpix_html_zip'
       },
     });
 
