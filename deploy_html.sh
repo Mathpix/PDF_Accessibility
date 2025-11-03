@@ -85,6 +85,25 @@ POLICY_DOC=$(cat <<'JSON'
     { "Sid": "BedrockRuntimeOptional", "Effect": "Allow",
       "Action": ["bedrock:Converse","bedrock:ConverseStream","bedrock:InvokeModel","bedrock:InvokeModelWithResponseStream"],
       "Resource": "*"
+    },
+    { "Sid": "ECRRepoAdmin",
+      "Effect": "Allow",
+      "Action": [
+        "ecr:CreateRepository",
+        "ecr:DescribeRepositories",
+        "ecr:SetRepositoryPolicy",
+        "ecr:ListImages",
+        "ecr:DescribeImages",
+        "ecr:DeleteRepository",
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer",
+        "ecr:PutImage",
+        "ecr:InitiateLayerUpload",
+        "ecr:UploadLayerPart",
+        "ecr:CompleteLayerUpload",
+        "ecr:GetAuthorizationToken"
+      ],
+      "Resource": "*"
     }
   ]
 }
