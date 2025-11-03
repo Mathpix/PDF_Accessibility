@@ -71,7 +71,7 @@ fi
 # - sts:GetCallerIdentity
 # - ssm:Get*/PutParameter (if the build reads/writes parameters)
 # - bedrock runtime (OPTIONAL) for alt text generation: Converse/InvokeModel
-read -r -d '' POLICY_DOC <<'JSON'
+POLICY_DOC=$(cat <<'JSON'
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -89,6 +89,7 @@ read -r -d '' POLICY_DOC <<'JSON'
   ]
 }
 JSON
+)
 
 info "Ensuring IAM policy: $POLICY_NAME"
 POLICY_ARN="arn:aws:iam::$ACCOUNT_ID:policy/$POLICY_NAME"
