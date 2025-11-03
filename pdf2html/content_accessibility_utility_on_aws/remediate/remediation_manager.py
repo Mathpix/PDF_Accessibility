@@ -127,6 +127,7 @@ class RemediationManager:
             # Image remediation strategies
             "missing_alt_text": remediate_missing_alt_text,
             "empty_alt_text": remediate_empty_alt_text,
+            "empty-alt-text": remediate_generic_alt_text,
             "generic_alt_text": remediate_generic_alt_text,
             "generic-alt-text": remediate_generic_alt_text,  # Alternative hyphenated format
             "long_alt_text": remediate_long_alt_text,

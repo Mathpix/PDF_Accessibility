@@ -25,6 +25,109 @@ from content_accessibility_utility_on_aws.utils.usage_tracker import SessionUsag
 # Set up module-level logger
 logger = setup_logger(__name__, level="INFO")
 
+def process_html_zip_accessibility(
+        html_zip_path: str,
+        output_dir: str,
+        perform_audit: bool = True,
+        perform_remediation: bool = True,
+        audit_options: Optional[Dict[str, Any]] = None,
+        remediation_options: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """
+    Takes a ready-made html.zip (Mathpix), unzips it to <output_dir>/extracted_html,
+    then runs audit -> remediation (if enabled), generates index.html
+    and returns the same fields as process_pdf_accessibility['conversion_result'] + audit/remediation.
+    """
+    import zipfile, os
+    from content_accessibility_utility_on_aws.utils.resources import ensure_directory
+
+    extract_dir = os.path.join(output_dir, "extracted_html")
+    ensure_directory(extract_dir)
+
+    with zipfile.ZipFile(html_zip_path, "r") as zf:
+        zf.extractall(extract_dir)
+
+    # Compiling HTML
+    html_files, main_html_path = [], os.path.join(extract_dir, "index.html")
+    for root, _, files in os.walk(extract_dir):
+        for fn in files:
+            if fn.lower().endswith(".html"):
+                p = os.path.join(root, fn)
+                html_files.append(p)
+    if not os.path.exists(main_html_path) and html_files:
+        main_html_path = sorted(html_files)[0]
+
+    # Collecting images (for reports and remediation)
+    image_files = []
+    for root, _, files in os.walk(extract_dir):
+        for fn in files:
+            if fn.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg")):
+                image_files.append(os.path.join(root, fn))
+    image_dir = os.path.commonpath(image_files) if image_files else None
+
+    # Audit
+    result = {"conversion_result": {
+        "html_path": main_html_path,
+        "html_files": html_files,
+        "image_files": image_files,
+        "image_dir": image_dir,
+        "is_image_only": False,
+        "temp_dir": None,
+        "engine": "mathpix:html.zip",
+    }}
+
+    if perform_audit:
+        audit_result = audit_html_accessibility(
+            html_path=os.path.dirname(main_html_path) if len(html_files) > 1 else main_html_path,
+            image_dir=image_dir,
+            options=audit_options,
+            output_path=os.path.join(output_dir, "accessibility_audit.json"),
+        )
+        result["audit_result"] = audit_result
+
+        # Remediation
+        if perform_remediation:
+            rem_opts = remediation_options or {}
+            # If there is more than one HTML, use the multi_page (directory) mode.
+            multi_html_dir = os.path.dirname(main_html_path) if len(html_files) > 1 else None
+            html_input = multi_html_dir or main_html_path
+
+            # Preparing the exit route
+            if multi_html_dir:
+                remediation_output_path = os.path.join(output_dir, "remediated_html")
+                ensure_directory(remediation_output_path)
+                rem_opts.setdefault("multi_page", True)
+            else:
+                remediation_output_path = os.path.join(output_dir, "remediated_combined_document.html")
+                rem_opts.setdefault("single_page", True)
+
+            # Filter the report (leave issues for fixing)
+            filtered = None
+            if audit_result:
+                filtered = {
+                    "issues": [i for i in audit_result.get("issues", []) if
+                               i.get("remediation_status") == "needs_remediation"],
+                    "summary": audit_result.get("summary", {})
+                }
+
+            from content_accessibility_utility_on_aws.remediate.api import \
+                remediate_html_accessibility as remediate_impl
+            rem_res = remediate_impl(
+                html_path=html_input,
+                audit_report=filtered,
+                options=rem_opts,
+                output_path=remediation_output_path,
+                image_dir=image_dir,
+            )
+            result["remediation_result"] = rem_res
+
+            # Remediation Report
+            if rem_res:
+                report_path = os.path.join(output_dir, "remediation_report.html")
+                generate_remediation_report(rem_res, report_path, "html")
+                result["remediation_report_path"] = report_path
+
+    return result
 
 def process_pdf_accessibility(
     pdf_path: str,

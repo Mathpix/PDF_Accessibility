@@ -292,7 +292,7 @@ def find_image_by_issue(soup: BeautifulSoup, issue: Dict[str, Any]) -> Optional[
 
     # Strategy 7: Check for issue type specific matching
     issue_type = issue.get("type", "")
-    if issue_type == "generic-alt-text":
+    if issue_type == "generic-alt-text" or issue_type == "empty-alt-text":
         # Look for images with common generic alt text patterns
         generic_patterns = [
             r"^image$",
@@ -311,6 +311,10 @@ def find_image_by_issue(soup: BeautifulSoup, issue: Dict[str, Any]) -> Optional[
         for image in soup.find_all("img"):
             if image.has_attr("alt"):
                 alt_text = image["alt"].strip().lower()
+                # 1) Explicitly handle empty alt for the empty-alt-text type
+                if issue_type == "empty-alt-text" and alt_text == "":
+                    logger.debug("Found image with empty alt attribute")
+                    return image
                 if alt_text and any(
                     re.match(pattern, alt_text) for pattern in generic_patterns
                 ):
@@ -391,9 +395,11 @@ def remediate_generic_alt_text(soup, issue, bedrock_client=None):
 
     # Confirm this image has generic alt text
     current_alt = img.get("alt", "").strip()
-    if not current_alt or current_alt.upper() not in [p.upper() for p in generic_patterns]:
-        logger.info(f"Image alt text '{current_alt}' is not recognized as generic")
-        return None
+    issue_type = issue.get("type", "")
+    if issue_type == "generic-alt-text":
+        if not current_alt or current_alt.upper() not in [p.upper() for p in generic_patterns]:
+            logger.info(f"Image alt text '{current_alt}' is not recognized as generic")
+            return None
 
     try:
         # Try to generate alt text using Bedrock AI

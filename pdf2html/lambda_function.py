@@ -82,12 +82,20 @@ def lambda_handler(event, context):
         if not key.startswith("uploads/"):
             print(f"[INFO] Skipping non-uploads file: {key}")
             return {"status": "skipped", "message": "Not in uploads/ folder"}
-            
-        # 2. Additional check to ensure we're only processing PDF files
-        if not key.lower().endswith('.pdf'):
-            print(f"[INFO] Skipping non-PDF file: {key}")
-            return {"status": "skipped", "message": "Not a PDF file"}
-            
+
+        is_pdf = key.lower().endswith('.pdf')
+        is_html_zip = key.lower().endswith('.html.zip') or key.lower().endswith('.zip')
+
+        # 2. Additional check to ensure we're only processing PDF or html.zop files
+        if not (is_pdf or is_html_zip):
+            print(f"[INFO] Skipping non-PDF/HTML.ZIP file: {key}")
+            return {"status": "skipped", "message": "Not a PDF or html.zip file"}
+
+        # # 2. Additional check to ensure we're only processing PDF files
+        # if not key.lower().endswith('.pdf'):
+        #     print(f"[INFO] Skipping non-PDF file: {key}")
+        #     return {"status": "skipped", "message": "Not a PDF file"}
+
         # 3. Ensure we're not processing any files that might be in uploads/ but are not direct uploads
         # For example, skip any files in uploads/ that might be in subfolders
         if key.count('/') > 1:
@@ -102,8 +110,16 @@ def lambda_handler(event, context):
         print(f"[INFO] Original filename: {original_filename}, Sanitized filename: {sanitized_filename}")
         
         # Use sanitized filename for all processing
-        filename_base = os.path.splitext(sanitized_filename)[0]
-        
+        # filename_base = os.path.splitext(sanitized_filename)[0]
+        # filename_base should correctly trim .html.zip
+        lower = sanitized_filename.lower()
+        if lower.endswith('.html.zip'):
+            filename_base = sanitized_filename[:-len('.html.zip')]
+        elif lower.endswith('.zip'):
+            filename_base = os.path.splitext(sanitized_filename)[0]
+        else:
+            filename_base = os.path.splitext(sanitized_filename)[0]
+
         # IDEMPOTENCY CHECK: Re-enabled to prevent reprocessing the same file
         # Try both sanitized and original filenames for backward compatibility
         output_check_keys = [
@@ -133,7 +149,7 @@ def lambda_handler(event, context):
                 "output_dir": f"s3://{bucket}/output/{filename_base}/"
             }
 
-        # 2) Download PDF to /tmp with sanitized filename for processing
+        # 2) Download PDF or html.zip to /tmp with sanitized filename for processing
         local_in = f"/tmp/{sanitized_filename}"
         try:
             s3.download_file(bucket, key, local_in)
@@ -150,18 +166,29 @@ def lambda_handler(event, context):
         # 3) Run the API exactly as the CLI would
         try:
             print(f"[INFO] Processing PDF: {local_in}")
-            
-            # Process the PDF using the API with the same options as CLI
-            conversion_result = process_pdf_accessibility(
-                pdf_path=local_in, 
-                output_dir=temp_output_dir,
-                perform_audit=True,
-                perform_remediation=True,
-                conversion_options={
-                    "cleanup_bda_output": True,
-                    "single_file": True
-                }
-            )
+
+            if is_pdf:
+                # Process the PDF using the API with the same options as CLI
+                conversion_result = process_pdf_accessibility(
+                    pdf_path=local_in,
+                    output_dir=temp_output_dir,
+                    perform_audit=True,
+                    perform_remediation=True,
+                    conversion_options={
+                        "cleanup_bda_output": True,
+                        "single_file": True
+                    }
+                )
+            else:
+                # html.zip mode
+                from content_accessibility_utility_on_aws.api import process_html_zip_accessibility
+                conversion_result = process_html_zip_accessibility(
+                    html_zip_path=local_in,
+                    output_dir=temp_output_dir,
+                    perform_audit=True,
+                    perform_remediation=True,
+                )
+
             print(f"[INFO] Processing complete. Result: {conversion_result}")
         except Exception as e:
             print(f"[ERROR] Processing {key} failed: {e}")

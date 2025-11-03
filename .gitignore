@@ -22,3 +22,4 @@ lambda/add_title/venv
 # OS generated files
 **/.DS_Store
 **/.DS_Store?
+.idea/
