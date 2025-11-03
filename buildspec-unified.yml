@@ -117,7 +117,8 @@ phases:
             | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com
         
           echo "Pushing Docker image to ECR..."
-          docker push $REPO_URI:latest
+          set -euo pipefail
+          docker push "$REPO_URI:latest" || { echo "ECR push failed"; exit 1; }   
           echo "Docker image pushed successfully."
 
           # Bootstrap CDK and deploy

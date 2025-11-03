@@ -75,36 +75,18 @@ POLICY_DOC=$(cat <<'JSON'
 {
   "Version": "2012-10-17",
   "Statement": [
-    { "Sid": "S3", "Effect": "Allow", "Action": ["s3:*"], "Resource": "*" },
-    { "Sid": "Logs", "Effect": "Allow", "Action": ["logs:*"], "Resource": "*" },
-    { "Sid": "Lambda", "Effect": "Allow", "Action": ["lambda:*"], "Resource": "*" },
-    { "Sid": "CFN", "Effect": "Allow", "Action": ["cloudformation:*"], "Resource": "*" },
-    { "Sid": "IAMBasic", "Effect": "Allow", "Action": ["iam:PassRole","iam:GetRole","iam:AttachRolePolicy","iam:CreateRole"], "Resource": "*" },
-    { "Sid": "STS", "Effect": "Allow", "Action": ["sts:GetCallerIdentity"], "Resource": "*" },
-    { "Sid": "SSM", "Effect": "Allow", "Action": ["ssm:GetParameter","ssm:GetParameters","ssm:PutParameter"], "Resource": "*" },
-    { "Sid": "BedrockRuntimeOptional", "Effect": "Allow",
-      "Action": ["bedrock:Converse","bedrock:ConverseStream","bedrock:InvokeModel","bedrock:InvokeModelWithResponseStream"],
+    { "Sid": "S3FullAccess", "Effect": "Allow", "Action": ["s3:*"], "Resource": "*" },
+    { "Sid": "CloudWatchLogsFullAccess", "Effect": "Allow", "Action": ["logs:*"], "Resource": "*" },
+    { "Sid": "LambdaFullAccess", "Effect": "Allow", "Action": ["lambda:*"], "Resource": "*" },
+    { "Sid": "CloudFormationFullAccess", "Effect": "Allow", "Action": ["cloudformation:*"], "Resource": "*" },
+    { "Sid": "IAMFullAccess", "Effect": "Allow", "Action": ["iam:*"], "Resource": "*" },
+    { "Sid": "STSAccess", "Effect": "Allow", "Action": ["sts:GetCallerIdentity", "sts:AssumeRole"], "Resource": "*" },
+    { "Sid": "SSMParameterAccess", "Effect": "Allow", "Action": ["ssm:GetParameter","ssm:GetParameters","ssm:PutParameter"], "Resource": "*" },
+    { "Sid": "BedrockFullAccess", "Effect": "Allow",
+      "Action": ["bedrock:*", "bedrock-data-automation:*", "bedrock-data-automation-runtime:*"],
       "Resource": "*"
     },
-    { "Sid": "ECRRepoAdmin",
-      "Effect": "Allow",
-      "Action": [
-        "ecr:CreateRepository",
-        "ecr:DescribeRepositories",
-        "ecr:SetRepositoryPolicy",
-        "ecr:ListImages",
-        "ecr:DescribeImages",
-        "ecr:DeleteRepository",
-        "ecr:BatchGetImage",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:PutImage",
-        "ecr:InitiateLayerUpload",
-        "ecr:UploadLayerPart",
-        "ecr:CompleteLayerUpload",
-        "ecr:GetAuthorizationToken"
-      ],
-      "Resource": "*"
-    }
+    { "Sid": "ECRFullAccess", "Effect": "Allow", "Action": ["ecr:*"], "Resource": "*" }
   ]
 }
 JSON
