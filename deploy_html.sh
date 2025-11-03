@@ -12,7 +12,7 @@ warn()    { echo -e "${YELLOW}[WARN]${NC} $*"; }
 err()     { echo -e "${RED}[ERROR]${NC} $*"; }
 
 # ---- static config ----
-GITHUB_URL="hhttps://github.com/Mathpix/PDF_Accessibility.git"  # source repository
+GITHUB_URL="https://github.com/Mathpix/PDF_Accessibility.git"  # source repository
 PROJECT_NAME="pdf2html-zip-$(date +%Y%m%d%H%M%S)"
 ROLE_NAME="${PROJECT_NAME}-codebuild-role"
 POLICY_NAME="${PROJECT_NAME}-codebuild-policy"
