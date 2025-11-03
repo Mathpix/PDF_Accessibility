@@ -108,21 +108,15 @@ phases:
           
           # Build and push Docker image
           echo "Building Docker image..."
-          REPO_URI="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/pdf2html-lambda"
-        
+          REPO_URI="$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com/${REPO_NAME}"
           IMAGE_TAG="cb-${CODEBUILD_BUILD_NUMBER:-$(date +%Y%m%d%H%M%S)}"
-          docker build --platform linux/amd64 --no-cache -t ${REPO_URI}:${IMAGE_TAG} -t ${REPO_URI}:latest .
+          docker build --platform linux/amd64 --no-cache -t "${REPO_URI}:${IMAGE_TAG}" -t "${REPO_URI}:latest" .
 
           echo "Pushing Docker image to ECR..."
-          docker push ${REPO_URI}:${IMAGE_TAG}
-          docker push ${REPO_URI}:latest
+          docker push "${REPO_URI}:${IMAGE_TAG}"
+          docker push "${REPO_URI}:latest"
           echo "Docker image pushed successfully."
-        
-#          docker build --platform linux/amd64 --no-cache -t $REPO_URI:latest .
-#          echo "Pushing Docker image to ECR..."
-#          docker push $REPO_URI:latest
-#          echo "Docker image pushed successfully."
-          
+
           # Bootstrap CDK and deploy
           echo "Bootstrapping CDK..."
           cd cdk
@@ -135,12 +129,11 @@ phases:
           npx cdk bootstrap aws://$ACCOUNT_ID/$REGION
           echo "Deploying CDK stack..."
           npx cdk deploy --app "node bin/app.js" \
-            --parameters BucketName=$BUCKET_NAME \
-            --parameters BdaProjectArn=$BDA_PROJECT_ARN \
-            --parameters ImageTag=${IMAGE_TAG} \
+            --parameters BucketName="$BUCKET_NAME" \
+            --parameters BdaProjectArn="$BDA_PROJECT_ARN" \
+            --parameters ImageTag="${IMAGE_TAG}" \
             --require-approval never
-#          npx cdk deploy --app "node bin/app.js" --parameters BdaProjectArn=$BDA_PROJECT_ARN --parameters BucketName=$BUCKET_NAME --require-approval never
-          
+
         elif [ "$DEPLOYMENT_TYPE" = "pdf2pdf" ]; then
           echo "Deploying PDF-to-PDF Remediation Solution..."
           echo "Deploying CDK stacks with retry logic..."

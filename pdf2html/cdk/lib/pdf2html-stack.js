@@ -103,7 +103,7 @@ class Pdf2HtmlStack extends Stack {
       s3.EventType.OBJECT_CREATED,
       new s3n.LambdaDestination(lambdaFunction),
       { prefix: 'uploads/' },
-      { suffix: '.pdf' }
+      { suffix: '.html.zip' }
     );
 
     // Outputs
