@@ -128,7 +128,7 @@ phases:
           
           npx cdk bootstrap aws://$ACCOUNT_ID/$REGION
           echo "Deploying CDK stack..."
-          npx cdk deploy --app "node bin/app.js" --parameters ImageTagOrDigest=$TAG BdaProjectArn=$BDA_PROJECT_ARN --parameters BucketName=$BUCKET_NAME --require-approval never
+          npx cdk deploy --app "node bin/app.js" --parameters ImageTagOrDigest=$TAG --parameters BdaProjectArn=$BDA_PROJECT_ARN --parameters BucketName=$BUCKET_NAME --require-approval never
 
         elif [ "$DEPLOYMENT_TYPE" = "pdf2pdf" ]; then
           echo "Deploying PDF-to-PDF Remediation Solution..."
