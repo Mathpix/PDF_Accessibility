@@ -74,13 +74,11 @@ class Pdf2HtmlStack extends Stack {
       resources: ['arn:aws:logs:*:*:*'],
     }));
 
-    const imageTag = new CfnParameter(this, 'ImageTagOrDigest', { type: 'String' });
     // Create Lambda function
     const lambdaFunction = new lambda.DockerImageFunction(this, 'Pdf2HtmlFunction', {
       functionName: 'Pdf2HtmlPipeline',
       code: lambda.DockerImageCode.fromEcr(repository, {
-        // tagOrDigest: 'latest'
-        tagOrDigest: imageTag.valueAsString
+        tagOrDigest: 'latest'
       }),
       role: lambdaRole,
       timeout: Duration.minutes(15),
