@@ -134,7 +134,7 @@ ENV_JSON=$(jq -n \
   --arg compute "$COMPUTE_TYPE" \
   --argjson priv $PRIVILEGED_MODE \
   --argjson env "$ENV_VARS" \
-  '{type:"LINUX_CONTAINER", image:$image, computeType:$compute, privilegedMode:$priv, environmentVariables:env}')
+  '{type:"LINUX_CONTAINER", image:$image, computeType:$compute, privilegedMode:$priv, environmentVariables:$env}')
 
 SOURCE_JSON=$(jq -n \
   --arg url "$GITHUB_URL" \
