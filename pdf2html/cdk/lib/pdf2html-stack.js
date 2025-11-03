@@ -10,11 +10,6 @@ class Pdf2HtmlStack extends Stack {
     super(scope, id, props);
 
     // Parameters
-    const imageTagParam = new CfnParameter(this, 'ImageTag', {
-      type: 'String',
-      default: 'latest',
-    });
-
     const bucketName = new CfnParameter(this, 'BucketName', {
       type: 'String',
       description: 'Name of the pre-created S3 bucket for PDF processing',
@@ -83,8 +78,7 @@ class Pdf2HtmlStack extends Stack {
     const lambdaFunction = new lambda.DockerImageFunction(this, 'Pdf2HtmlFunction', {
       functionName: 'Pdf2HtmlPipeline',
       code: lambda.DockerImageCode.fromEcr(repository, {
-        tagOrDigest: imageTagParam.valueAsString
-        // tagOrDigest: 'latest'
+        tagOrDigest: 'latest'
       }),
       role: lambdaRole,
       timeout: Duration.minutes(15),
