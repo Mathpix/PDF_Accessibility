@@ -133,7 +133,6 @@ phases:
           npx cdk bootstrap aws://$ACCOUNT_ID/$REGION
           echo "Deploying CDK stack..."
           PARAMS=(--app "node bin/app.js"
-                  --parameters ImageTagOrDigest="$DIGEST"
                   --parameters BucketName="$BUCKET_NAME"
                   --require-approval never)
 
