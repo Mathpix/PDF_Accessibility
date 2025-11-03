@@ -112,7 +112,6 @@ phases:
           docker build --platform linux/amd64 --no-cache -t $REPO_URI:latest .
 
           echo "Pushing Docker image to ECR..."
-#          docker push $REPO_URI:latest
           TAG=$(git rev-parse --short HEAD)
           docker tag "$REPO_URI:latest" "$REPO_URI:$TAG"
           docker push "$REPO_URI:$TAG"
